@@ -1,10 +1,10 @@
 /**
  * BKG (Brandenburgers Kommando Gruppen) — Discord Onboarding Backend
  *
- * Ovaj fajl ide u Google Apps Script, povezan na Google Sheet.
- * Instrukcije za deploy su u README.md.
+ * This file goes into Google Apps Script, bound to a Google Sheet.
+ * Deployment instructions are in README.md.
  *
- * KOLONE U SHEET-U (mora da se poklapaju tačno, redosled je bitan):
+ * SHEET COLUMNS (must match exactly, order matters):
  * A: Timestamp
  * B: ApplicationID
  * C: Discord Username
@@ -19,45 +19,86 @@
  * L: Country
  * M: Time Zone
  * N: Other Games
- * O: Status          <-- admin ovo ručno menja: Pending / Approved / Rejected
+ * O: Status          <-- admin changes this manually: Pending / Approved / Rejected
  */
 
 const SHEET_NAME = "Applications";
 const DISCORD_INVITE_LINK = "https://discord.gg/bkg";
 
+const ADMIN_USERNAME = "BKG1389";
+const ADMIN_PASSWORD = "admin1389";
+
 /**
- * Handles POST request from the onboarding form (new application).
+ * Handles POST requests: new application submissions and admin login.
  */
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
-    const sheet = getOrCreateSheet();
 
-    const applicationId = generateApplicationId();
-    const timestamp = new Date();
+    if (data.action === "adminLogin") {
+      return handleAdminLogin(data);
+    }
 
-    sheet.appendRow([
-      timestamp,
-      applicationId,
-      data.discordUsername || "",
-      data.ingameTag || "",
-      data.casualPlay || "",
-      data.competitivePlay || "",
-      data.preferredNation || "",
-      data.highestTier || "",
-      data.preferredSquad || "",
-      data.microphone || "",
-      data.age || "",
-      data.country || "",
-      data.timeZone || "",
-      data.otherGames || "",
-      "Pending"
-    ]);
-
-    return jsonResponse({ success: true, applicationId: applicationId });
+    return handleApplicationSubmit(data);
   } catch (err) {
     return jsonResponse({ success: false, error: err.message });
   }
+}
+
+/**
+ * Handles a new application submission from the onboarding form.
+ */
+function handleApplicationSubmit(data) {
+  const sheet = getOrCreateSheet();
+
+  const applicationId = generateApplicationId();
+  const timestamp = new Date();
+
+  sheet.appendRow([
+    timestamp,
+    applicationId,
+    data.discordUsername || "",
+    data.ingameTag || "",
+    data.casualPlay || "",
+    data.competitivePlay || "",
+    data.preferredNation || "",
+    data.highestTier || "",
+    data.preferredSquad || "",
+    data.microphone || "",
+    data.age || "",
+    data.country || "",
+    data.timeZone || "",
+    data.otherGames || "",
+    "Pending"
+  ]);
+
+  return jsonResponse({ success: true, applicationId: applicationId });
+}
+
+/**
+ * Handles admin login: verifies credentials and returns all applications.
+ */
+function handleAdminLogin(data) {
+  if (data.username !== ADMIN_USERNAME || data.password !== ADMIN_PASSWORD) {
+    return jsonResponse({ success: false, error: "Invalid username or password." });
+  }
+
+  const sheet = getOrCreateSheet();
+  const values = sheet.getDataRange().getValues();
+  const headers = values[0];
+  const applications = [];
+
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    const entry = {};
+    headers.forEach((header, idx) => {
+      const cell = row[idx];
+      entry[header] = cell instanceof Date ? cell.toISOString() : cell;
+    });
+    applications.push(entry);
+  }
+
+  return jsonResponse({ success: true, applications: applications });
 }
 
 /**
@@ -67,7 +108,7 @@ function doGet(e) {
   try {
     const id = e.parameter.id;
     if (!id) {
-      return jsonResponse({ success: false, error: "Nedostaje ID prijave." });
+      return jsonResponse({ success: false, error: "Missing application ID." });
     }
 
     const sheet = getOrCreateSheet();
@@ -76,7 +117,7 @@ function doGet(e) {
     for (let i = 1; i < values.length; i++) {
       const row = values[i];
       if (row[1] === id) {
-        const status = row[14]; // kolona O
+        const status = row[14]; // column O
         const result = { success: true, status: status };
         if (status === "Approved") {
           result.inviteLink = DISCORD_INVITE_LINK;
@@ -85,7 +126,7 @@ function doGet(e) {
       }
     }
 
-    return jsonResponse({ success: false, error: "Prijava sa ovim ID-om nije pronađena." });
+    return jsonResponse({ success: false, error: "No application found with this ID." });
   } catch (err) {
     return jsonResponse({ success: false, error: err.message });
   }
@@ -107,8 +148,8 @@ function getOrCreateSheet() {
 }
 
 function generateApplicationId() {
-  // Format: BKG-XXXXXX (6 nasumičnih alfanumeričkih karaktera)
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // bez lako-zbunjujućih karaktera (0/O, 1/I)
+  // Format: BKG-XXXXXX (6 random alphanumeric characters)
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no easily-confused characters (0/O, 1/I)
   let id = "BKG-";
   for (let i = 0; i < 6; i++) {
     id += chars.charAt(Math.floor(Math.random() * chars.length));

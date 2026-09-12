@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="sr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BKG — Prijava za Enlisted</title>
+<title>BKG — Enlisted Application</title>
 <style>
   :root {
     --bkg-red: #b3242c;
@@ -51,6 +51,11 @@
     padding: 32px 28px;
     backdrop-filter: blur(6px);
     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    transition: max-width 0.2s ease;
+  }
+
+  .card.wide {
+    max-width: 920px;
   }
 
   .brand {
@@ -105,6 +110,7 @@
 
   .step input[type="text"],
   .step input[type="number"],
+  .step input[type="password"],
   .step select {
     width: 100%;
     padding: 12px 14px;
@@ -212,6 +218,9 @@
     text-align: center;
     margin-top: 20px;
     font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .link-bottom a {
@@ -239,15 +248,79 @@
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  .admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .admin-header h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .admin-header .admin-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .admin-actions button {
+    flex: none;
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    max-height: 60vh;
+    overflow-y: auto;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+
+  table.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  table.admin-table th,
+  table.admin-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  table.admin-table th {
+    background: rgba(255,255,255,0.06);
+    position: sticky;
+    top: 0;
+    color: var(--bkg-text);
+  }
+
+  table.admin-table td.status-Pending { color: #e0b030; font-weight: 600; }
+  table.admin-table td.status-Approved { color: #4caf50; font-weight: 600; }
+  table.admin-table td.status-Rejected { color: #e05555; font-weight: 600; }
+
+  .admin-empty {
+    text-align: center;
+    padding: 30px 0;
+    color: var(--bkg-muted);
+  }
 </style>
 </head>
 <body>
 
-<div class="card">
+<div class="card" id="mainCard">
 
-  <div class="brand">
+  <div class="brand" id="brandHeader">
     <h1>BKG — Brandenburgers Kommando Gruppen</h1>
-    <p>Prijava za Enlisted</p>
+    <p>Enlisted Application</p>
   </div>
 
   <!-- ===================== FORM WIZARD ===================== -->
@@ -258,36 +331,36 @@
 
       <div class="step active" data-step="1">
         <label>Discord username</label>
-        <input type="text" id="discordUsername" placeholder="npr. dule_srb" required>
+        <input type="text" id="discordUsername" placeholder="e.g. john_doe" required>
       </div>
 
       <div class="step" data-step="2">
         <label>In-game tag</label>
-        <input type="text" id="ingameTag" placeholder="Tvoj tag u igri" required>
+        <input type="text" id="ingameTag" placeholder="Your in-game tag" required>
       </div>
 
       <div class="step" data-step="3">
         <label>Casual play</label>
         <select id="casualPlay" required>
-          <option value="" disabled selected>Izaberi...</option>
-          <option value="Yes">Da</option>
-          <option value="No">Ne</option>
+          <option value="" disabled selected>Select...</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
         </select>
       </div>
 
       <div class="step" data-step="4">
         <label>Competitive play</label>
         <select id="competitivePlay" required>
-          <option value="" disabled selected>Izaberi...</option>
-          <option value="Yes">Da</option>
-          <option value="No">Ne</option>
+          <option value="" disabled selected>Select...</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
         </select>
       </div>
 
       <div class="step" data-step="5">
         <label>Preferred nation</label>
         <select id="preferredNation" required>
-          <option value="" disabled selected>Izaberi...</option>
+          <option value="" disabled selected>Select...</option>
           <option>Axis</option>
           <option>Soviet</option>
           <option>USA</option>
@@ -298,7 +371,7 @@
       <div class="step" data-step="6">
         <label>Highest tier</label>
         <select id="highestTier" required>
-          <option value="" disabled selected>Izaberi...</option>
+          <option value="" disabled selected>Select...</option>
           <option>I</option>
           <option>II</option>
           <option>III</option>
@@ -310,7 +383,7 @@
       <div class="step" data-step="7">
         <label>Preferred squad</label>
         <select id="preferredSquad" required>
-          <option value="" disabled selected>Izaberi...</option>
+          <option value="" disabled selected>Select...</option>
           <option>Rifleman</option>
           <option>Assaulter</option>
           <option>Sniper</option>
@@ -334,78 +407,103 @@
       <div class="step" data-step="8">
         <label>Microphone</label>
         <select id="microphone" required>
-          <option value="" disabled selected>Izaberi...</option>
-          <option value="Yes">Da</option>
-          <option value="No">Ne</option>
+          <option value="" disabled selected>Select...</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
         </select>
       </div>
 
       <div class="step" data-step="9">
         <label>Age</label>
-        <input type="number" id="age" min="1" max="120" placeholder="Tvoje godine" required>
+        <input type="number" id="age" min="1" max="120" placeholder="Your age" required>
       </div>
 
       <div class="step" data-step="10">
-        <label>Nation (država)</label>
+        <label>Country</label>
         <select id="country" required>
-          <option value="" disabled selected>Izaberi...</option>
+          <option value="" disabled selected>Select...</option>
         </select>
       </div>
 
       <div class="step" data-step="11">
         <label>Time zone</label>
         <select id="timeZone" required>
-          <option value="" disabled selected>Izaberi...</option>
+          <option value="" disabled selected>Select...</option>
         </select>
       </div>
 
       <div class="step" data-step="12">
         <label>Other games</label>
-        <input type="text" id="otherGames" placeholder="Koje jos igrice igras (opciono)">
-        <div class="hint">Ovo polje je opciono — možeš ostaviti prazno.</div>
+        <input type="text" id="otherGames" placeholder="What other games do you play (optional)">
+        <div class="hint">This field is optional — you can leave it blank.</div>
       </div>
 
       <div class="nav-buttons">
-        <button type="button" class="btn-secondary" id="backBtn">Nazad</button>
-        <button type="button" class="btn-primary" id="nextBtn">Dalje</button>
+        <button type="button" class="btn-secondary" id="backBtn">Back</button>
+        <button type="button" class="btn-primary" id="nextBtn">Next</button>
       </div>
 
-      <div class="step-counter" id="stepCounter">Korak 1 od 12</div>
+      <div class="step-counter" id="stepCounter">Step 1 of 12</div>
       <div class="error-msg" id="errorMsg" style="display:none;"></div>
     </form>
   </div>
 
   <!-- ===================== SUBMIT SUCCESS ===================== -->
   <div class="step result-box" id="successScreen" style="display:none;">
-    <p>Prijava je poslata. Sačuvaj ovaj kod — potreban ti je da proveriš status prijave:</p>
+    <p>Your application has been submitted. Save this code — you'll need it to check your application status:</p>
     <div class="app-id" id="appIdDisplay"></div>
-    <p class="hint">Status se ne menja automatski — administrator ručno pregleda prijave. Vrati se na ovu stranicu kad god želiš i proveri status ispod.</p>
-    <button type="button" class="btn-primary" id="goToStatusFromSuccess" style="margin-top:10px;">Proveri status sada</button>
+    <p class="hint">The status does not change automatically — an admin reviews applications manually. Come back to this page any time and check your status below.</p>
+    <button type="button" class="btn-primary" id="goToStatusFromSuccess" style="margin-top:10px;">Check status now</button>
   </div>
 
   <!-- ===================== STATUS CHECK ===================== -->
   <div class="step result-box" id="statusScreen" style="display:none;">
-    <label style="text-align:left;">Unesi svoj kod prijave</label>
-    <input type="text" id="statusIdInput" placeholder="npr. BKG-4F7K2P" style="text-transform:uppercase;">
-    <button type="button" class="btn-primary" id="checkStatusBtn" style="margin-top:14px; width:100%;">Proveri status</button>
+    <label style="text-align:left;">Enter your application code</label>
+    <input type="text" id="statusIdInput" placeholder="e.g. BKG-4F7K2P" style="text-transform:uppercase;">
+    <button type="button" class="btn-primary" id="checkStatusBtn" style="margin-top:14px; width:100%;">Check status</button>
     <div id="statusResult" style="margin-top:18px;"></div>
     <div class="error-msg" id="statusError" style="display:none;"></div>
   </div>
 
-  <div class="link-bottom">
-    <a id="showStatusLink">Već imaš kod prijave? Proveri status</a>
+  <!-- ===================== ADMIN LOGIN ===================== -->
+  <div class="step result-box" id="adminLoginScreen" style="display:none;">
+    <label style="text-align:left;">Username</label>
+    <input type="text" id="adminUsername" placeholder="Admin username" autocomplete="username">
+    <div style="height:12px;"></div>
+    <label style="text-align:left;">Password</label>
+    <input type="password" id="adminPassword" placeholder="Admin password" autocomplete="current-password">
+    <button type="button" class="btn-primary" id="adminLoginBtn" style="margin-top:14px; width:100%;">Log in</button>
+    <div class="error-msg" id="adminLoginError" style="display:none;"></div>
+  </div>
+
+  <!-- ===================== ADMIN PANEL ===================== -->
+  <div class="step" id="adminPanelScreen" style="display:none;">
+    <div class="admin-header">
+      <h2>Applications</h2>
+      <div class="admin-actions">
+        <button type="button" class="btn-secondary" id="adminRefreshBtn">Refresh</button>
+        <button type="button" class="btn-secondary" id="adminLogoutBtn">Log out</button>
+      </div>
+    </div>
+    <div id="adminTableWrapper"></div>
+    <div class="error-msg" id="adminPanelError" style="display:none;"></div>
+  </div>
+
+  <div class="link-bottom" id="linkBottom">
+    <a id="showStatusLink">Already have an application code? Check status</a>
+    <a id="showAdminLink">Admin login</a>
   </div>
 
 </div>
 
 <script>
   // =====================================================================
-  // KONFIGURACIJA — OVDE MORAŠ UPISATI SVOJ APPS SCRIPT WEB APP URL
-  // (Instrukcije u README.md, korak "Deploy Apps Script")
+  // CONFIGURATION — YOUR APPS SCRIPT WEB APP URL GOES HERE
+  // (Instructions in README.md, "Deploy Apps Script" step)
   // =====================================================================
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyRF8DBHJsaFIfEg4E6hLPGGmf9W_LwqQ1Niwe7R2qlfAvDyo5q_CXmDq2kcNA6bhr/exec";
 
-  // --- Country list (ISO short names, sr/lat friendly enough) ---
+  // --- Country list ---
   const COUNTRIES = ["Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cabo Verde","Cambodia","Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo","Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Ivory Coast","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"];
 
   // --- Time zone list (UTC offsets) ---
@@ -439,9 +537,9 @@
     const target = steps.find(s => parseInt(s.dataset.step) === n);
     target.classList.add("active");
     progressFill.style.width = (n / totalSteps * 100) + "%";
-    stepCounter.textContent = `Korak ${n} od ${totalSteps}`;
+    stepCounter.textContent = `Step ${n} of ${totalSteps}`;
     backBtn.disabled = (n === 1);
-    nextBtn.textContent = (n === totalSteps) ? "Pošalji prijavu" : "Dalje";
+    nextBtn.textContent = (n === totalSteps) ? "Submit application" : "Next";
     errorMsg.style.display = "none";
   }
 
@@ -450,7 +548,7 @@
     const input = stepEl.querySelector("input, select");
     if (!input) return true;
     if (input.hasAttribute("required") && !input.value) {
-      errorMsg.textContent = "Ovo polje je obavezno.";
+      errorMsg.textContent = "This field is required.";
       errorMsg.style.display = "block";
       return false;
     }
@@ -477,7 +575,7 @@
 
   async function submitForm() {
     nextBtn.disabled = true;
-    nextBtn.innerHTML = '<span class="spinner"></span>Šaljem...';
+    nextBtn.innerHTML = '<span class="spinner"></span>Submitting...';
 
     const payload = {
       discordUsername: document.getElementById("discordUsername").value,
@@ -497,7 +595,7 @@
     try {
       const res = await fetch(APPS_SCRIPT_URL, {
         method: "POST",
-        body: JSON.stringify(payload) // bez custom Content-Type header -> izbegava CORS preflight na Apps Script-u
+        body: JSON.stringify(payload) // no custom Content-Type header -> avoids CORS preflight on Apps Script
       });
       const data = await res.json();
 
@@ -506,13 +604,13 @@
         document.getElementById("appIdDisplay").textContent = data.applicationId;
         document.getElementById("successScreen").style.display = "block";
       } else {
-        throw new Error(data.error || "Nepoznata greška.");
+        throw new Error(data.error || "Unknown error.");
       }
     } catch (err) {
-      errorMsg.textContent = "Greška pri slanju: " + err.message;
+      errorMsg.textContent = "Error submitting: " + err.message;
       errorMsg.style.display = "block";
       nextBtn.disabled = false;
-      nextBtn.textContent = "Pošalji prijavu";
+      nextBtn.textContent = "Submit application";
     }
   }
 
@@ -524,9 +622,27 @@
   const statusError = document.getElementById("statusError");
   const checkStatusBtn = document.getElementById("checkStatusBtn");
 
+  const wizardEl = document.getElementById("wizard");
+  const successScreen = document.getElementById("successScreen");
+  const adminLoginScreen = document.getElementById("adminLoginScreen");
+  const adminPanelScreen = document.getElementById("adminPanelScreen");
+  const brandHeader = document.getElementById("brandHeader");
+  const linkBottom = document.getElementById("linkBottom");
+  const mainCard = document.getElementById("mainCard");
+
+  function hideAllScreens() {
+    wizardEl.style.display = "none";
+    successScreen.style.display = "none";
+    statusScreen.style.display = "none";
+    adminLoginScreen.style.display = "none";
+    adminPanelScreen.style.display = "none";
+    brandHeader.style.display = "block";
+    linkBottom.style.display = "flex";
+    mainCard.classList.remove("wide");
+  }
+
   function openStatusScreen() {
-    document.getElementById("wizard").style.display = "none";
-    document.getElementById("successScreen").style.display = "none";
+    hideAllScreens();
     statusScreen.style.display = "block";
   }
 
@@ -539,29 +655,29 @@
     statusResult.innerHTML = "";
 
     if (!id) {
-      statusError.textContent = "Unesi kod prijave.";
+      statusError.textContent = "Enter your application code.";
       statusError.style.display = "block";
       return;
     }
 
     checkStatusBtn.disabled = true;
-    checkStatusBtn.innerHTML = '<span class="spinner"></span>Proveravam...';
+    checkStatusBtn.innerHTML = '<span class="spinner"></span>Checking...';
 
     try {
       const res = await fetch(`${APPS_SCRIPT_URL}?id=${encodeURIComponent(id)}`);
       const data = await res.json();
 
       if (!data.success) {
-        throw new Error(data.error || "Prijava nije pronađena.");
+        throw new Error(data.error || "Application not found.");
       }
 
       if (data.status === "Pending") {
-        statusResult.innerHTML = `<p>Status: <span class="status-pending">Na čekanju</span></p>`;
+        statusResult.innerHTML = `<p>Status: <span class="status-pending">Pending</span></p>`;
       } else if (data.status === "Approved") {
-        statusResult.innerHTML = `<p>Status: <span class="status-approved">Odobreno</span></p>
-          <a class="invite-link" href="${data.inviteLink}" target="_blank">Pridruži se BKG Discord serveru</a>`;
+        statusResult.innerHTML = `<p>Status: <span class="status-approved">Approved</span></p>
+          <a class="invite-link" href="${data.inviteLink}" target="_blank">Join the BKG Discord server</a>`;
       } else if (data.status === "Rejected") {
-        statusResult.innerHTML = `<p>Status: <span class="status-rejected">Odbijeno</span></p>`;
+        statusResult.innerHTML = `<p>Status: <span class="status-rejected">Rejected</span></p>`;
       } else {
         statusResult.innerHTML = `<p>Status: ${data.status}</p>`;
       }
@@ -570,8 +686,124 @@
       statusError.style.display = "block";
     } finally {
       checkStatusBtn.disabled = false;
-      checkStatusBtn.textContent = "Proveri status";
+      checkStatusBtn.textContent = "Check status";
     }
+  });
+
+  // --- Admin login + panel ---
+  const showAdminLink = document.getElementById("showAdminLink");
+  const adminUsername = document.getElementById("adminUsername");
+  const adminPassword = document.getElementById("adminPassword");
+  const adminLoginBtn = document.getElementById("adminLoginBtn");
+  const adminLoginError = document.getElementById("adminLoginError");
+  const adminTableWrapper = document.getElementById("adminTableWrapper");
+  const adminPanelError = document.getElementById("adminPanelError");
+  const adminRefreshBtn = document.getElementById("adminRefreshBtn");
+  const adminLogoutBtn = document.getElementById("adminLogoutBtn");
+
+  let cachedAdminCredentials = null;
+
+  function openAdminLoginScreen() {
+    hideAllScreens();
+    adminLoginScreen.style.display = "block";
+  }
+
+  showAdminLink.addEventListener("click", openAdminLoginScreen);
+
+  adminLoginBtn.addEventListener("click", async () => {
+    const username = adminUsername.value.trim();
+    const password = adminPassword.value;
+    adminLoginError.style.display = "none";
+
+    if (!username || !password) {
+      adminLoginError.textContent = "Enter both username and password.";
+      adminLoginError.style.display = "block";
+      return;
+    }
+
+    adminLoginBtn.disabled = true;
+    adminLoginBtn.innerHTML = '<span class="spinner"></span>Logging in...';
+
+    try {
+      const applications = await fetchAdminApplications(username, password);
+      cachedAdminCredentials = { username, password };
+      renderAdminTable(applications);
+      hideAllScreens();
+      brandHeader.style.display = "none";
+      linkBottom.style.display = "none";
+      mainCard.classList.add("wide");
+      adminPanelScreen.style.display = "block";
+      adminPassword.value = "";
+    } catch (err) {
+      adminLoginError.textContent = err.message;
+      adminLoginError.style.display = "block";
+    } finally {
+      adminLoginBtn.disabled = false;
+      adminLoginBtn.textContent = "Log in";
+    }
+  });
+
+  async function fetchAdminApplications(username, password) {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "adminLogin", username, password })
+    });
+    const data = await res.json();
+    if (!data.success) {
+      throw new Error(data.error || "Invalid username or password.");
+    }
+    return data.applications || [];
+  }
+
+  function renderAdminTable(applications) {
+    if (!applications.length) {
+      adminTableWrapper.innerHTML = `<div class="admin-empty">No applications yet.</div>`;
+      return;
+    }
+
+    const columns = Object.keys(applications[0]);
+    let html = `<div class="table-wrapper"><table class="admin-table"><thead><tr>`;
+    columns.forEach(col => { html += `<th>${col}</th>`; });
+    html += `</tr></thead><tbody>`;
+
+    applications.forEach(app => {
+      html += `<tr>`;
+      columns.forEach(col => {
+        const value = app[col] == null ? "" : String(app[col]);
+        const statusClass = col === "Status" ? ` class="status-${value}"` : "";
+        html += `<td${statusClass}>${value}</td>`;
+      });
+      html += `</tr>`;
+    });
+
+    html += `</tbody></table></div>`;
+    adminTableWrapper.innerHTML = html;
+  }
+
+  adminRefreshBtn.addEventListener("click", async () => {
+    if (!cachedAdminCredentials) return;
+    adminPanelError.style.display = "none";
+    adminRefreshBtn.disabled = true;
+    adminRefreshBtn.textContent = "Refreshing...";
+    try {
+      const applications = await fetchAdminApplications(cachedAdminCredentials.username, cachedAdminCredentials.password);
+      renderAdminTable(applications);
+    } catch (err) {
+      adminPanelError.textContent = err.message;
+      adminPanelError.style.display = "block";
+    } finally {
+      adminRefreshBtn.disabled = false;
+      adminRefreshBtn.textContent = "Refresh";
+    }
+  });
+
+  adminLogoutBtn.addEventListener("click", () => {
+    cachedAdminCredentials = null;
+    adminUsername.value = "";
+    adminPassword.value = "";
+    hideAllScreens();
+    wizardEl.style.display = "block";
+    showStep(currentStep);
   });
 
   showStep(currentStep);

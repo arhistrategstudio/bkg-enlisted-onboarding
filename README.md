@@ -1,85 +1,112 @@
 # BKG — Enlisted Discord Onboarding Form
 
-Statička web forma (GitHub Pages) + Google Sheets kao baza (preko Apps Script).
-Nema servera, nema hostinga, nema mesečnih troškova.
+Static web form (GitHub Pages) + Google Sheets as the database (via Apps Script).
+No server, no hosting, no monthly costs.
 
-## Kako radi (kratko objašnjenje)
+## How it works (short version)
 
-1. Aplikant otvori formu, odgovara na pitanja jedno po jedno.
-2. Kad pošalje, forma šalje podatke Google Apps Script-u, koji ih upisuje kao
-   novi red u Google Sheet-u i vraća aplikantu jedinstveni kod (npr. `BKG-4F7K2P`).
-3. Ti (admin) otvoriš Sheet, pregledaš prijavu, i ručno upišeš `Approved` ili
-   `Rejected` u kolonu **Status**.
-4. Aplikant se vrati na formu, unese svoj kod u sekciju "Proveri status", i
-   ako je odobren — automatski mu se pojavi dugme sa linkom ka Discord
-   serveru. Ti ne moraš ništa ručno da mu šalješ.
+1. The applicant opens the form and answers questions one at a time.
+2. On submit, the form sends the data to Google Apps Script, which appends
+   a new row to the Google Sheet and returns a unique code to the applicant
+   (e.g. `BKG-4F7K2P`).
+3. You (the admin) open the Sheet, review the application, and manually set
+   `Approved` or `Rejected` in the **Status** column.
+4. The applicant returns to the form, enters their code in the "Check
+   status" section, and if approved — a button with the Discord invite
+   link appears automatically. You don't have to send anything manually.
 
-Ovo je jedini realan način da "automatizuješ" slanje invite linka bez
-prikupljanja email adrese i bez Discord bota — status-check stranica radi
-posao umesto tebe.
+This is the only realistic way to "automate" sending the invite link
+without collecting an email address and without a Discord bot — the
+status-check page does the work for you.
+
+There's also an **admin panel** built into the same page — log in with
+the admin username/password to see every application in a table, without
+opening the Google Sheet.
 
 ---
 
-## KORAK 1 — Napravi Google Sheet
+## STEP 1 — Create the Google Sheet
 
-1. Idi na sheets.google.com → **Blank spreadsheet**.
-2. Nazovi ga npr. `BKG Enlisted Applications`.
+1. Go to sheets.google.com → **Blank spreadsheet**.
+2. Name it e.g. `BKG Enlisted Applications`.
 
-## KORAK 2 — Zakači Apps Script na Sheet
+## STEP 2 — Attach Apps Script to the Sheet
 
-1. U Sheet-u: **Extensions → Apps Script**.
-2. Obriši sav postojeći kod u editoru.
-3. Otvori fajl `apps-script/Code.gs` iz ovog paketa, kopiraj **ceo sadržaj**,
-   i nalepi ga u Apps Script editor.
-4. Klikni disketu (Save), Ctrl+S.
+1. In the Sheet: **Extensions → Apps Script**.
+2. Delete all existing code in the editor.
+3. Open `apps-script/Code.gs` from this package, copy **the entire
+   contents**, and paste it into the Apps Script editor.
+4. Click the save icon (Ctrl+S).
 
-## KORAK 3 — Deploy kao Web App
+## STEP 3 — Deploy as a Web App
 
-1. Gore desno: **Deploy → New deployment**.
-2. Klikni na zupčanik pored "Select type" → izaberi **Web app**.
-3. Podesi:
+1. Top right: **Deploy → New deployment**.
+2. Click the gear icon next to "Select type" → choose **Web app**.
+3. Set:
    - Execute as: **Me**
    - Who has access: **Anyone**
-4. Klikni **Deploy**.
-5. Google će tražiti da autorizuješ script (tvoj nalog) — klikni kroz to
-   (Advanced → Go to [ime projekta] (unsafe) je normalno za sopstveni script).
-6. Kopiraj **Web app URL** koji dobiješ — izgleda ovako:
+4. Click **Deploy**.
+5. Google will ask you to authorize the script (your account) — click
+   through it (Advanced → Go to [project name] (unsafe) is normal for
+   your own script).
+6. Copy the **Web app URL** you get — it looks like this:
    `https://script.google.com/macros/s/AKfycb.../exec`
 
-## KORAK 4 — Ubaci URL u formu
+## STEP 4 — Wire the URL into the form
 
-1. Otvori `index.html` iz ovog paketa.
-2. Pronađi liniju:
+1. Open `index.html` from this package.
+2. Find the line:
    ```
    const APPS_SCRIPT_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
    ```
-3. Zameni tekst između navodnika sa URL-om iz Koraka 3.
-4. Sačuvaj fajl.
+3. Replace the text between the quotes with the URL from Step 3.
+4. Save the file.
 
-## KORAK 5 — Objavi na GitHub Pages
+## STEP 5 — Publish on GitHub Pages
 
-1. Napravi novi repo na GitHub-u (npr. `bkg-enlisted-onboarding`) pod tvojom
-   organizacijom `arhistrategstudio`.
-2. Ubaci ceo sadržaj ovog paketa (`index.html` i folder `assets/`) u root
-   tog repoa — folder `apps-script/` NE mora da ide na GitHub, to je samo
-   za tebe, jer se taj kod ne izvršava u browseru.
-3. U repo podešavanjima: **Settings → Pages → Source: main branch, / (root)**.
-4. Za par minuta, forma je dostupna na:
+1. Create a new GitHub repo (e.g. `bkg-enlisted-onboarding`) under your
+   account `arhistrategstudio`.
+2. Push this package's contents (`index.html` and the `assets/` folder) to
+   the root of that repo — the `apps-script/` folder does NOT need to go
+   on GitHub, it's just for you, since that code never runs in the browser.
+3. In repo settings: **Settings → Pages → Source: main branch, / (root)**.
+4. After a couple of minutes, the form is live at:
    `https://arhistrategstudio.github.io/bkg-enlisted-onboarding/`
 
-## KORAK 6 — Kako odobravaš prijave
+## STEP 6 — How to approve applications
 
-1. Otvori Google Sheet.
-2. Za svaku novu prijavu, u koloni **Status** upiši tačno `Approved` ili
-   `Rejected` (bez navodnika, tačno ta reč, prvo slovo veliko).
-3. Gotovo — aplikant će videti promenu čim proveri status na formi.
+1. Open the Google Sheet.
+2. For each new application, type exactly `Approved` or `Rejected` in the
+   **Status** column (no quotes, exactly that word, capitalized).
+3. Done — the applicant will see the change as soon as they check status
+   on the form.
+
+## Admin panel (in the form itself)
+
+The form has an "Admin login" link at the bottom. Logging in there shows
+every application in a table (same data as the Sheet) without needing to
+open Google Sheets at all.
+
+- Username: `BKG1389`
+- Password: `admin1389`
+
+These credentials are checked server-side in `apps-script/Code.gs`
+(`ADMIN_USERNAME` / `ADMIN_PASSWORD` constants) — they are never present
+in the page's HTML/JS source, only sent to the backend when logging in.
+To change them, edit those two constants in `Code.gs`, push, and redeploy
+(see below).
+
+Note: the Status column is still only editable from the Sheet itself —
+the admin panel is read-only (a viewer/table), matching the manual
+approve/reject workflow above.
 
 ---
 
-## Šta da uradiš ako menjaš Discord invite link
+## What to do if you change the Discord invite link
 
-Otvori `apps-script/Code.gs`, promeni liniju:
+Open `apps-script/Code.gs`, change the line:
 ```
 const DISCORD_INVITE_LINK = "https://discord.gg/bkg";
 ```
-i ponovo deploy-uj (**Deploy → Manage deployments → Edit (olovka) → New version → Deploy**).
+and redeploy (**Deploy → Manage deployments → Edit (pencil) → New
+version → Deploy**).
