@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BKG — Prijava za Enlisted</title>
+<style>
+  :root {
+    --bkg-red: #b3242c;
+    --bkg-dark: #14171a;
+    --bkg-panel: rgba(15, 17, 20, 0.82);
+    --bkg-panel-border: rgba(255, 255, 255, 0.12);
+    --bkg-text: #f2f2f0;
+    --bkg-muted: #b8b8b4;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    color: var(--bkg-text);
+  }
+
+  body {
+    background:
+      radial-gradient(circle at 20% 20%, rgba(179,36,44,0.18), transparent 45%),
+      radial-gradient(circle at 80% 70%, rgba(179,36,44,0.12), transparent 50%),
+      linear-gradient(160deg, #0c0d0f 0%, #1b1d21 45%, #23262b 100%);
+    background-attachment: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.6) 100%);
+    z-index: 0;
+  }
+
+  .card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 520px;
+    background: var(--bkg-panel);
+    border: 1px solid var(--bkg-panel-border);
+    border-radius: 14px;
+    padding: 32px 28px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .brand {
+    text-align: center;
+    margin-bottom: 22px;
+  }
+
+  .brand h1 {
+    font-size: 20px;
+    letter-spacing: 1px;
+    margin: 0 0 4px 0;
+    color: var(--bkg-text);
+    text-transform: uppercase;
+  }
+
+  .brand p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--bkg-muted);
+  }
+
+  .progress {
+    height: 4px;
+    width: 100%;
+    background: rgba(255,255,255,0.12);
+    border-radius: 4px;
+    margin-bottom: 26px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--bkg-red);
+    transition: width 0.3s ease;
+  }
+
+  .step { display: none; animation: fadeIn 0.25s ease; }
+  .step.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step label {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--bkg-text);
+  }
+
+  .step input[type="text"],
+  .step input[type="number"],
+  .step select {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.06);
+    color: var(--bkg-text);
+    outline: none;
+  }
+
+  .step input::placeholder { color: rgba(255,255,255,0.4); }
+
+  .step select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px;
+  }
+
+  .step select option { color: #111; }
+
+  .hint {
+    font-size: 12px;
+    color: var(--bkg-muted);
+    margin-top: 8px;
+  }
+
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 28px;
+    gap: 12px;
+  }
+
+  button {
+    flex: 1;
+    padding: 13px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+
+  button:active { opacity: 0.75; }
+
+  .btn-primary {
+    background: var(--bkg-red);
+    color: #fff;
+  }
+
+  .btn-secondary {
+    background: rgba(255,255,255,0.1);
+    color: var(--bkg-text);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .step-counter {
+    text-align: center;
+    font-size: 12px;
+    color: var(--bkg-muted);
+    margin-top: 14px;
+  }
+
+  .result-box {
+    text-align: center;
+  }
+
+  .result-box .app-id {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--bkg-red);
+    letter-spacing: 2px;
+    margin: 14px 0;
+    padding: 12px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 8px;
+    border: 1px dashed rgba(255,255,255,0.3);
+  }
+
+  .status-pending { color: #e0b030; font-weight: 600; }
+  .status-approved { color: #4caf50; font-weight: 600; }
+  .status-rejected { color: #e05555; font-weight: 600; }
+
+  .invite-link {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 13px 22px;
+    background: #5865F2;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+
+  .link-bottom {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+  }
+
+  .link-bottom a {
+    color: var(--bkg-muted);
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .error-msg {
+    color: #e05555;
+    font-size: 13px;
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <div class="brand">
+    <h1>BKG — Brandenburgers Kommando Gruppen</h1>
+    <p>Prijava za Enlisted</p>
+  </div>
+
+  <!-- ===================== FORM WIZARD ===================== -->
+  <div id="wizard">
+    <div class="progress"><div class="progress-fill" id="progressFill" style="width: 8.3%"></div></div>
+
+    <form id="applicationForm">
+
+      <div class="step active" data-step="1">
+        <label>Discord username</label>
+        <input type="text" id="discordUsername" placeholder="npr. dule_srb" required>
+      </div>
+
+      <div class="step" data-step="2">
+        <label>In-game tag</label>
+        <input type="text" id="ingameTag" placeholder="Tvoj tag u igri" required>
+      </div>
+
+      <div class="step" data-step="3">
+        <label>Casual play</label>
+        <select id="casualPlay" required>
+          <option value="" disabled selected>Izaberi...</option>
+          <option value="Yes">Da</option>
+          <option value="No">Ne</option>
+        </select>
+      </div>
+
+      <div class="step" data-step="4">
+        <label>Competitive play</label>
+        <select id="competitivePlay" required>
+          <option value="" disabled selected>Izaberi...</option>
+          <option value="Yes">Da</option>
+          <option value="No">Ne</option>
+        </select>
+      </div>
+
+      <div class="step" data-step="5">
+        <label>Preferred nation</label>
+        <select id="preferredNation" required>
+          <option value="" disabled selected>Izaberi...</option>
+          <option>Axis</option>
+          <option>Soviet</option>
+          <option>USA</option>
+          <option>Japan</option>
+        </select>
+      </div>
+
+      <div class="step" data-step="6">
+        <label>Highest tier</label>
+        <select id="highestTier" required>
+          <option value="" disabled selected>Izaberi...</option>
+          <option>I</option>
+          <option>II</option>
+          <option>III</option>
+          <option>IV</option>
+          <option>V</option>
+        </select>
+      </div>
+
+      <div class="step" data-step="7">
+        <label>Preferred squad</label>
+        <select id="preferredSquad" required>
+          <option value="" disabled selected>Izaberi...</option>
+          <option>Rifleman</option>
+          <option>Assaulter</option>
+          <option>Sniper</option>
+          <option>Machine Gunner</option>
+          <option>Mortarman</option>
+          <option>Flametrooper</option>
+          <option>Medic</option>
+          <option>Guerilla</option>
+          <option>Radio Operator</option>
+          <option>Engineer</option>
+          <option>Paratrooper</option>
+          <option>Tanker</option>
+          <option>APC Driver</option>
+          <option>Rider</option>
+          <option>AT Gunner</option>
+          <option>Attacker Pilot</option>
+          <option>Fighter Pilot</option>
+        </select>
+      </div>
+
+      <div class="step" data-step="8">
+        <label>Microphone</label>
+        <select id="microphone" required>
+          <option value="" disabled selected>Izaberi...</option>
+          <option value="Yes">Da</option>
+          <option value="No">Ne</option>
+        </select>
+      </div>
+
+      <div class="step" data-step="9">
+        <label>Age</label>
+        <input type="number" id="age" min="1" max="120" placeholder="Tvoje godine" required>
+      </div>
+
+      <div class="step" data-step="10">
+        <label>Nation (država)</label>
+        <select id="country" required>
+          <option value="" disabled selected>Izaberi...</option>
+        </select>
+      </div>
+
+      <div class="step" data-step="11">
+        <label>Time zone</label>
+        <select id="timeZone" required>
+          <option value="" disabled selected>Izaberi...</option>
+        </select>
+      </div>
+
+      <div class="step" data-step="12">
+        <label>Other games</label>
+        <input type="text" id="otherGames" placeholder="Koje jos igrice igras (opciono)">
+        <div class="hint">Ovo polje je opciono — možeš ostaviti prazno.</div>
+      </div>
+
+      <div class="nav-buttons">
+        <button type="button" class="btn-secondary" id="backBtn">Nazad</button>
+        <button type="button" class="btn-primary" id="nextBtn">Dalje</button>
+      </div>
+
+      <div class="step-counter" id="stepCounter">Korak 1 od 12</div>
+      <div class="error-msg" id="errorMsg" style="display:none;"></div>
+    </form>
+  </div>
+
+  <!-- ===================== SUBMIT SUCCESS ===================== -->
+  <div class="step result-box" id="successScreen" style="display:none;">
+    <p>Prijava je poslata. Sačuvaj ovaj kod — potreban ti je da proveriš status prijave:</p>
+    <div class="app-id" id="appIdDisplay"></div>
+    <p class="hint">Status se ne menja automatski — administrator ručno pregleda prijave. Vrati se na ovu stranicu kad god želiš i proveri status ispod.</p>
+    <button type="button" class="btn-primary" id="goToStatusFromSuccess" style="margin-top:10px;">Proveri status sada</button>
+  </div>
+
+  <!-- ===================== STATUS CHECK ===================== -->
+  <div class="step result-box" id="statusScreen" style="display:none;">
+    <label style="text-align:left;">Unesi svoj kod prijave</label>
+    <input type="text" id="statusIdInput" placeholder="npr. BKG-4F7K2P" style="text-transform:uppercase;">
+    <button type="button" class="btn-primary" id="checkStatusBtn" style="margin-top:14px; width:100%;">Proveri status</button>
+    <div id="statusResult" style="margin-top:18px;"></div>
+    <div class="error-msg" id="statusError" style="display:none;"></div>
+  </div>
+
+  <div class="link-bottom">
+    <a id="showStatusLink">Već imaš kod prijave? Proveri status</a>
+  </div>
+
+</div>
+
+<script>
+  // =====================================================================
+  // KONFIGURACIJA — OVDE MORAŠ UPISATI SVOJ APPS SCRIPT WEB APP URL
+  // (Instrukcije u README.md, korak "Deploy Apps Script")
+  // =====================================================================
+  const APPS_SCRIPT_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+  // --- Country list (ISO short names, sr/lat friendly enough) ---
+  const COUNTRIES = ["Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Cabo Verde","Cambodia","Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo","Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Ivory Coast","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"];
+
+  // --- Time zone list (UTC offsets) ---
+  const TIMEZONES = ["UTC-12:00","UTC-11:00","UTC-10:00","UTC-09:00","UTC-08:00","UTC-07:00","UTC-06:00","UTC-05:00","UTC-04:00","UTC-03:00","UTC-02:00","UTC-01:00","UTC+00:00","UTC+01:00","UTC+02:00","UTC+03:00","UTC+03:30","UTC+04:00","UTC+04:30","UTC+05:00","UTC+05:30","UTC+05:45","UTC+06:00","UTC+06:30","UTC+07:00","UTC+08:00","UTC+09:00","UTC+09:30","UTC+10:00","UTC+11:00","UTC+12:00","UTC+13:00","UTC+14:00"];
+
+  function populateSelect(id, list) {
+    const sel = document.getElementById(id);
+    list.forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      sel.appendChild(opt);
+    });
+  }
+  populateSelect("country", COUNTRIES);
+  populateSelect("timeZone", TIMEZONES);
+
+  // --- Wizard logic ---
+  const steps = Array.from(document.querySelectorAll(".step[data-step]"));
+  const totalSteps = steps.length;
+  let currentStep = 1;
+
+  const nextBtn = document.getElementById("nextBtn");
+  const backBtn = document.getElementById("backBtn");
+  const progressFill = document.getElementById("progressFill");
+  const stepCounter = document.getElementById("stepCounter");
+  const errorMsg = document.getElementById("errorMsg");
+
+  function showStep(n) {
+    steps.forEach(s => s.classList.remove("active"));
+    const target = steps.find(s => parseInt(s.dataset.step) === n);
+    target.classList.add("active");
+    progressFill.style.width = (n / totalSteps * 100) + "%";
+    stepCounter.textContent = `Korak ${n} od ${totalSteps}`;
+    backBtn.disabled = (n === 1);
+    nextBtn.textContent = (n === totalSteps) ? "Pošalji prijavu" : "Dalje";
+    errorMsg.style.display = "none";
+  }
+
+  function validateCurrentStep() {
+    const stepEl = steps.find(s => parseInt(s.dataset.step) === currentStep);
+    const input = stepEl.querySelector("input, select");
+    if (!input) return true;
+    if (input.hasAttribute("required") && !input.value) {
+      errorMsg.textContent = "Ovo polje je obavezno.";
+      errorMsg.style.display = "block";
+      return false;
+    }
+    return true;
+  }
+
+  nextBtn.addEventListener("click", () => {
+    if (!validateCurrentStep()) return;
+
+    if (currentStep < totalSteps) {
+      currentStep++;
+      showStep(currentStep);
+    } else {
+      submitForm();
+    }
+  });
+
+  backBtn.addEventListener("click", () => {
+    if (currentStep > 1) {
+      currentStep--;
+      showStep(currentStep);
+    }
+  });
+
+  async function submitForm() {
+    nextBtn.disabled = true;
+    nextBtn.innerHTML = '<span class="spinner"></span>Šaljem...';
+
+    const payload = {
+      discordUsername: document.getElementById("discordUsername").value,
+      ingameTag: document.getElementById("ingameTag").value,
+      casualPlay: document.getElementById("casualPlay").value,
+      competitivePlay: document.getElementById("competitivePlay").value,
+      preferredNation: document.getElementById("preferredNation").value,
+      highestTier: document.getElementById("highestTier").value,
+      preferredSquad: document.getElementById("preferredSquad").value,
+      microphone: document.getElementById("microphone").value,
+      age: document.getElementById("age").value,
+      country: document.getElementById("country").value,
+      timeZone: document.getElementById("timeZone").value,
+      otherGames: document.getElementById("otherGames").value
+    };
+
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(payload) // bez custom Content-Type header -> izbegava CORS preflight na Apps Script-u
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        document.getElementById("wizard").style.display = "none";
+        document.getElementById("appIdDisplay").textContent = data.applicationId;
+        document.getElementById("successScreen").style.display = "block";
+      } else {
+        throw new Error(data.error || "Nepoznata greška.");
+      }
+    } catch (err) {
+      errorMsg.textContent = "Greška pri slanju: " + err.message;
+      errorMsg.style.display = "block";
+      nextBtn.disabled = false;
+      nextBtn.textContent = "Pošalji prijavu";
+    }
+  }
+
+  // --- Status check ---
+  const showStatusLink = document.getElementById("showStatusLink");
+  const goToStatusFromSuccess = document.getElementById("goToStatusFromSuccess");
+  const statusScreen = document.getElementById("statusScreen");
+  const statusResult = document.getElementById("statusResult");
+  const statusError = document.getElementById("statusError");
+  const checkStatusBtn = document.getElementById("checkStatusBtn");
+
+  function openStatusScreen() {
+    document.getElementById("wizard").style.display = "none";
+    document.getElementById("successScreen").style.display = "none";
+    statusScreen.style.display = "block";
+  }
+
+  showStatusLink.addEventListener("click", openStatusScreen);
+  goToStatusFromSuccess.addEventListener("click", openStatusScreen);
+
+  checkStatusBtn.addEventListener("click", async () => {
+    const id = document.getElementById("statusIdInput").value.trim().toUpperCase();
+    statusError.style.display = "none";
+    statusResult.innerHTML = "";
+
+    if (!id) {
+      statusError.textContent = "Unesi kod prijave.";
+      statusError.style.display = "block";
+      return;
+    }
+
+    checkStatusBtn.disabled = true;
+    checkStatusBtn.innerHTML = '<span class="spinner"></span>Proveravam...';
+
+    try {
+      const res = await fetch(`${APPS_SCRIPT_URL}?id=${encodeURIComponent(id)}`);
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Prijava nije pronađena.");
+      }
+
+      if (data.status === "Pending") {
+        statusResult.innerHTML = `<p>Status: <span class="status-pending">Na čekanju</span></p>`;
+      } else if (data.status === "Approved") {
+        statusResult.innerHTML = `<p>Status: <span class="status-approved">Odobreno</span></p>
+          <a class="invite-link" href="${data.inviteLink}" target="_blank">Pridruži se BKG Discord serveru</a>`;
+      } else if (data.status === "Rejected") {
+        statusResult.innerHTML = `<p>Status: <span class="status-rejected">Odbijeno</span></p>`;
+      } else {
+        statusResult.innerHTML = `<p>Status: ${data.status}</p>`;
+      }
+    } catch (err) {
+      statusError.textContent = err.message;
+      statusError.style.display = "block";
+    } finally {
+      checkStatusBtn.disabled = false;
+      checkStatusBtn.textContent = "Proveri status";
+    }
+  });
+
+  showStep(currentStep);
+</script>
+
+</body>
+</html>
