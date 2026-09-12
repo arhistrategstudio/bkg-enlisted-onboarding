@@ -29,7 +29,8 @@ const ADMIN_USERNAME = "BKG1389";
 const ADMIN_PASSWORD = "admin1389";
 
 /**
- * Handles POST requests: new application submissions and admin login.
+ * Handles POST requests: new application submissions, admin login,
+ * and admin status updates.
  */
 function doPost(e) {
   try {
@@ -37,6 +38,9 @@ function doPost(e) {
 
     if (data.action === "adminLogin") {
       return handleAdminLogin(data);
+    }
+    if (data.action === "updateStatus") {
+      return handleUpdateStatus(data);
     }
 
     return handleApplicationSubmit(data);
@@ -79,10 +83,46 @@ function handleApplicationSubmit(data) {
  * Handles admin login: verifies credentials and returns all applications.
  */
 function handleAdminLogin(data) {
-  if (data.username !== ADMIN_USERNAME || data.password !== ADMIN_PASSWORD) {
+  if (!isValidAdmin(data)) {
+    return jsonResponse({ success: false, error: "Invalid username or password." });
+  }
+  return jsonResponse({ success: true, applications: getAllApplications() });
+}
+
+/**
+ * Handles an admin approve/reject action for one application.
+ */
+function handleUpdateStatus(data) {
+  if (!isValidAdmin(data)) {
     return jsonResponse({ success: false, error: "Invalid username or password." });
   }
 
+  const validStatuses = ["Pending", "Approved", "Rejected"];
+  if (validStatuses.indexOf(data.status) === -1) {
+    return jsonResponse({ success: false, error: "Invalid status value." });
+  }
+  if (!data.applicationId) {
+    return jsonResponse({ success: false, error: "Missing application ID." });
+  }
+
+  const sheet = getOrCreateSheet();
+  const values = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < values.length; i++) {
+    if (values[i][1] === data.applicationId) {
+      sheet.getRange(i + 1, 15).setValue(data.status); // column O = Status
+      return jsonResponse({ success: true, applications: getAllApplications() });
+    }
+  }
+
+  return jsonResponse({ success: false, error: "No application found with this ID." });
+}
+
+function isValidAdmin(data) {
+  return data.username === ADMIN_USERNAME && data.password === ADMIN_PASSWORD;
+}
+
+function getAllApplications() {
   const sheet = getOrCreateSheet();
   const values = sheet.getDataRange().getValues();
   const headers = values[0];
@@ -98,7 +138,7 @@ function handleAdminLogin(data) {
     applications.push(entry);
   }
 
-  return jsonResponse({ success: true, applications: applications });
+  return applications;
 }
 
 /**

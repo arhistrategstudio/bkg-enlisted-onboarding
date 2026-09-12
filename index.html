@@ -307,6 +307,23 @@
   table.admin-table td.status-Approved { color: #4caf50; font-weight: 600; }
   table.admin-table td.status-Rejected { color: #e05555; font-weight: 600; }
 
+  .row-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .row-actions button {
+    flex: none;
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+
+  .btn-approve { background: #2e7d32; color: #fff; }
+  .btn-approve.active { outline: 2px solid #4caf50; }
+  .btn-reject { background: #7a2020; color: #fff; }
+  .btn-reject.active { outline: 2px solid #e05555; }
+
   .admin-empty {
     text-align: center;
     padding: 30px 0;
@@ -764,6 +781,7 @@
     const columns = Object.keys(applications[0]);
     let html = `<div class="table-wrapper"><table class="admin-table"><thead><tr>`;
     columns.forEach(col => { html += `<th>${col}</th>`; });
+    html += `<th>Actions</th>`;
     html += `</tr></thead><tbody>`;
 
     applications.forEach(app => {
@@ -773,12 +791,57 @@
         const statusClass = col === "Status" ? ` class="status-${value}"` : "";
         html += `<td${statusClass}>${value}</td>`;
       });
+
+      const appId = app["ApplicationID"];
+      const status = app["Status"];
+      html += `<td><div class="row-actions">
+        <button type="button" class="btn-approve${status === "Approved" ? " active" : ""}" data-app-id="${appId}" data-status="Approved">Approve</button>
+        <button type="button" class="btn-reject${status === "Rejected" ? " active" : ""}" data-app-id="${appId}" data-status="Rejected">Reject</button>
+      </div></td>`;
+
       html += `</tr>`;
     });
 
     html += `</tbody></table></div>`;
     adminTableWrapper.innerHTML = html;
   }
+
+  async function updateApplicationStatus(applicationId, status) {
+    if (!cachedAdminCredentials) return;
+    adminPanelError.style.display = "none";
+
+    const rowButtons = adminTableWrapper.querySelectorAll(`button[data-app-id="${applicationId}"]`);
+    rowButtons.forEach(b => b.disabled = true);
+
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "updateStatus",
+          username: cachedAdminCredentials.username,
+          password: cachedAdminCredentials.password,
+          applicationId: applicationId,
+          status: status
+        })
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Could not update status.");
+      }
+      renderAdminTable(data.applications || []);
+    } catch (err) {
+      adminPanelError.textContent = err.message;
+      adminPanelError.style.display = "block";
+      rowButtons.forEach(b => b.disabled = false);
+    }
+  }
+
+  adminTableWrapper.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-app-id]");
+    if (!btn) return;
+    updateApplicationStatus(btn.dataset.appId, btn.dataset.status);
+  });
 
   adminRefreshBtn.addEventListener("click", async () => {
     if (!cachedAdminCredentials) return;
