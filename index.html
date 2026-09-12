@@ -310,6 +310,7 @@
   .row-actions {
     display: flex;
     gap: 6px;
+    flex-wrap: nowrap;
   }
 
   .row-actions button {
@@ -323,6 +324,7 @@
   .btn-approve.active { outline: 2px solid #4caf50; }
   .btn-reject { background: #7a2020; color: #fff; }
   .btn-reject.active { outline: 2px solid #e05555; }
+  .btn-delete { background: #3a3a3a; color: #fff; border: 1px solid rgba(255,255,255,0.2); }
 
   .admin-empty {
     text-align: center;
@@ -451,7 +453,16 @@
 
       <div class="step" data-step="12">
         <label>Other games</label>
-        <input type="text" id="otherGames" placeholder="What other games do you play (optional)">
+        <select id="otherGames">
+          <option value="" selected>None (optional)</option>
+          <option>Battlefield 6</option>
+          <option>Hell Let Loose (WW2)</option>
+          <option>Hell Let Loose (Vietnam)</option>
+          <option>War Thunder Infantry</option>
+          <option>Wardogs</option>
+          <option value="Other">Other (type below)</option>
+        </select>
+        <input type="text" id="otherGamesCustom" placeholder="Type the game name" style="margin-top:10px; display:none;">
         <div class="hint">This field is optional — you can leave it blank.</div>
       </div>
 
@@ -538,6 +549,13 @@
   populateSelect("country", COUNTRIES);
   populateSelect("timeZone", TIMEZONES);
 
+  // --- "Other games" custom field toggle ---
+  const otherGamesSelect = document.getElementById("otherGames");
+  const otherGamesCustom = document.getElementById("otherGamesCustom");
+  otherGamesSelect.addEventListener("change", () => {
+    otherGamesCustom.style.display = otherGamesSelect.value === "Other" ? "block" : "none";
+  });
+
   // --- Wizard logic ---
   const steps = Array.from(document.querySelectorAll(".step[data-step]"));
   const totalSteps = steps.length;
@@ -606,7 +624,7 @@
       age: document.getElementById("age").value,
       country: document.getElementById("country").value,
       timeZone: document.getElementById("timeZone").value,
-      otherGames: document.getElementById("otherGames").value
+      otherGames: otherGamesSelect.value === "Other" ? otherGamesCustom.value : otherGamesSelect.value
     };
 
     try {
@@ -797,6 +815,7 @@
       html += `<td><div class="row-actions">
         <button type="button" class="btn-approve${status === "Approved" ? " active" : ""}" data-app-id="${appId}" data-status="Approved">Approve</button>
         <button type="button" class="btn-reject${status === "Rejected" ? " active" : ""}" data-app-id="${appId}" data-status="Rejected">Reject</button>
+        <button type="button" class="btn-delete" data-app-id="${appId}" data-action="delete">Delete</button>
       </div></td>`;
 
       html += `</tr>`;
@@ -837,10 +856,46 @@
     }
   }
 
+  async function deleteApplicationRow(applicationId) {
+    if (!cachedAdminCredentials) return;
+    const confirmed = window.confirm(`Delete application ${applicationId}? This cannot be undone.`);
+    if (!confirmed) return;
+
+    adminPanelError.style.display = "none";
+    const rowButtons = adminTableWrapper.querySelectorAll(`button[data-app-id="${applicationId}"]`);
+    rowButtons.forEach(b => b.disabled = true);
+
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "deleteApplication",
+          username: cachedAdminCredentials.username,
+          password: cachedAdminCredentials.password,
+          applicationId: applicationId
+        })
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "Could not delete application.");
+      }
+      renderAdminTable(data.applications || []);
+    } catch (err) {
+      adminPanelError.textContent = err.message;
+      adminPanelError.style.display = "block";
+      rowButtons.forEach(b => b.disabled = false);
+    }
+  }
+
   adminTableWrapper.addEventListener("click", (e) => {
     const btn = e.target.closest("button[data-app-id]");
     if (!btn) return;
-    updateApplicationStatus(btn.dataset.appId, btn.dataset.status);
+    if (btn.dataset.action === "delete") {
+      deleteApplicationRow(btn.dataset.appId);
+    } else {
+      updateApplicationStatus(btn.dataset.appId, btn.dataset.status);
+    }
   });
 
   adminRefreshBtn.addEventListener("click", async () => {

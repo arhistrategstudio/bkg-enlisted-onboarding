@@ -42,6 +42,9 @@ function doPost(e) {
     if (data.action === "updateStatus") {
       return handleUpdateStatus(data);
     }
+    if (data.action === "deleteApplication") {
+      return handleDeleteApplication(data);
+    }
 
     return handleApplicationSubmit(data);
   } catch (err) {
@@ -111,6 +114,30 @@ function handleUpdateStatus(data) {
   for (let i = 1; i < values.length; i++) {
     if (values[i][1] === data.applicationId) {
       sheet.getRange(i + 1, 15).setValue(data.status); // column O = Status
+      return jsonResponse({ success: true, applications: getAllApplications() });
+    }
+  }
+
+  return jsonResponse({ success: false, error: "No application found with this ID." });
+}
+
+/**
+ * Handles an admin delete action for one application.
+ */
+function handleDeleteApplication(data) {
+  if (!isValidAdmin(data)) {
+    return jsonResponse({ success: false, error: "Invalid username or password." });
+  }
+  if (!data.applicationId) {
+    return jsonResponse({ success: false, error: "Missing application ID." });
+  }
+
+  const sheet = getOrCreateSheet();
+  const values = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < values.length; i++) {
+    if (values[i][1] === data.applicationId) {
+      sheet.deleteRow(i + 1);
       return jsonResponse({ success: true, applications: getAllApplications() });
     }
   }
